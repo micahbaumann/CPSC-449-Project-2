@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 WAITLIST_MAXIMUM = 15
 MAXIMUM_WAITLISTED_CLASSES = 3
 
-class Settings(BaseSettings, env_file=".env", extra="ignore"):
+class Settings(BaseSettings, env_file="enroll/.env", extra="ignore"):
     database: str
     logging_config: str
 
