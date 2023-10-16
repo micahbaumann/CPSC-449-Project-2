@@ -3,7 +3,7 @@
 
 ## Updating the Databases
 1. Write the SQL. For the enroll service, write it in `enroll/var/catalog.sql`. For the enroll service, write it in `users/var/auth.sql`.
-2. Go into the directory that the sql file is in:
+2. Go into the directory that the sql file is in:  
    For enroll:
    ```bash
    cd enroll/var
