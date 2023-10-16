@@ -262,5 +262,71 @@
                 }
                 ]
             }
+
+
+
+
+
+
+            ,{
+                "endpoint": "/user/register",
+                "method": "POST",
+                "output_encoding": "no-op",
+                "backend": [
+                {
+                    "url_pattern": "/register",
+                    "method": "POST",
+                    "host": [
+                        "http://localhost:5100"
+                    ],
+                    "encoding": "no-op",
+                    "extra_config": {
+                        "backend/http": {
+                            "return_error_details": "backend_alias"
+                        }
+                    }
+                }
+                ]
+            },
+            {
+                "endpoint": "/user/login",
+                "method": "POST",
+                "output_encoding": "no-op",
+                "backend": [
+                {
+                    "url_pattern": "/login",
+                    "method": "POST",
+                    "host": [
+                        "http://localhost:5100"
+                    ],
+                    "encoding": "no-op",
+                    "extra_config": {
+                        "backend/http": {
+                            "return_error_details": "backend_alias"
+                        }
+                    }
+                }
+                ]
+            },
+            {
+                "endpoint": "/user/checkpwd",
+                "method": "GET",
+                "output_encoding": "no-op",
+                "backend": [
+                {
+                    "url_pattern": "/checkpwd",
+                    "method": "GET",
+                    "host": [
+                        "http://localhost:5100"
+                    ],
+                    "encoding": "no-op",
+                    "extra_config": {
+                        "backend/http": {
+                            "return_error_details": "backend_alias"
+                        }
+                    }
+                }
+                ]
+            }
         ]
 }

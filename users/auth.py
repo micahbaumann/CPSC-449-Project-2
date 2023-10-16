@@ -25,6 +25,6 @@ def register_user(db: sqlite3.Connection = Depends(get_db)):
 def login(db: sqlite3.Connection = Depends(get_db)):
     return {}
 
-@app.get("/checkpwd/{userName}")
-def login(userName: str, db: sqlite3.Connection = Depends(get_db)):
+@app.get("/checkpwd")
+def login(db: sqlite3.Connection = Depends(get_db)):
     return {}
