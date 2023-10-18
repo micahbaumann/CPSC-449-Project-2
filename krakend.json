@@ -10,7 +10,6 @@
             {
                 "endpoint": "/student/list",
                 "method": "GET",
-                "output_encoding": "no-op",
                 "backend": [
                 {
                     "url_pattern": "/list",
@@ -18,14 +17,22 @@
                     "host": [
                         "http://localhost:5000"
                     ],
-                    "encoding": "no-op",
                     "extra_config": {
                         "backend/http": {
                             "return_error_details": "backend_alias"
                         }
                     }
                 }
-                ]
+                ],
+                "extra_config": {
+                    "auth/validator": {
+                        "alg": "RS256",
+                        "roles": ["student"],
+                        "jwk_local_path": "./etc/public.json",
+                        "disable_jwk_security": true,
+                        "operation_debug": true
+                    }
+                }
             },
             {
                 "endpoint": "/student/enroll/{studentid}/{classid}/{sectionid}",
@@ -315,7 +322,7 @@
                         "alg": "RS256",
                         "kid": "sim1",
                         "keys_to_sign": ["access_token"],
-                        "jwk_local_path": "etc/jwk.json",
+                        "jwk_local_path": "etc/private.json",
                         "disable_jwk_security": true
                     }
                 }
