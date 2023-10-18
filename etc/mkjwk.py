@@ -18,9 +18,14 @@ def generate_keys(key_ids):
         key.export(private_key=private) for key in keys for private in [False, True]
     ]
     keys_as_json = [json.loads(exported_key) for exported_key in exported_keys]
-    jwks = {"keys": keys_as_json}
-    output = json.dumps(jwks, indent=4)
-    print(output)
+    public_key = {"keys": [keys_as_json[0]]}
+    private_key = {"keys": [keys_as_json[1]]}
+    public_output = json.dumps(public_key, indent=4)
+    private_output = json.dumps(private_key, indent=4)
+    print("Public Key:")
+    print(public_output)
+    print("\nPrivate Key:")
+    print(private_output)
 
 
 if __name__ == "__main__":

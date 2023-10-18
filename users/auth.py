@@ -83,8 +83,8 @@ def generate_claims(username, user_id, roles):
     _, exp = expiration_in(20)
 
     claims = {
-        "aud": "krakend.local.gd",
-        "iss": "auth.local.gd",
+        "aud": "localhost:5200",
+        "iss": "localhost:5200",
         "sub": username,
         "jti": str(user_id),
         "roles": roles,
