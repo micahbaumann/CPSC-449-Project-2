@@ -22,7 +22,7 @@ DROP TABLE IF EXISTS UserRoles;
 CREATE TABLE UserRoles (
     Id INT NOT NULL,
     RoleId INT NOT NULL REFERENCES Roles(RoleId),
-    UserId INT NOT NULL REFERENCES Registrations(UserId)
+    UserId INT NOT NULL REFERENCES Registrations(UserId),
     PRIMARY KEY (Id)
 );
 COMMIT;
