@@ -9,9 +9,11 @@ import base64
 import hashlib
 import secrets
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
+import datetime
 import os 
 import sys
+from typing import List
 #from jose import JWTError, jwt
 
 ALGORITHM = "pbkdf2_sha256"
@@ -96,9 +98,19 @@ def generate_claims(username, user_id, roles):
 @app.post("/register")
 def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     """Register a new user."""
+    '''
+    Request body
+    
+    {
+    "username":"ornella",
+    "password":"test",
+    "roles":["student","instructor"]    
+    }
+    '''
     username = user_data.username
     userpwd = user_data.password
-    roles = [role.strip() for role in user_data.roles.split(",")]
+    # roles = [role.strip() for role in user_data.roles.split(",")]
+    roles = user_data.roles
 
     # check that the username is not already taken
     user_exists = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
@@ -111,7 +123,7 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     user_id =  cursor.lastrowid #db.execute("SELECT UserId from Registrations ORDER BY UserId DESC LIMIT 1").fetchone()[0]
 
     for role in roles:
-        db.execute(f"INSERT INTO Roles (Rolename) VALUES ()", (role,))
+        db.execute(f"INSERT INTO Roles (Rolename) VALUES (?)", (role,))
         role_id = db.execute("SELECT RoleId from Roles ORDER BY RoleId DESC LIMIT 1").fetchone()[0]
         db.execute("INSERT INTO UserRoles (RoleId, UserId) VALUES (?, ?)", (role_id, user_id))
     db.commit()
@@ -120,19 +132,30 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
 @app.post("/login")
 def login(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     """Login an existing user and generate JWT token for future requests."""
+    '''
+    Request body
+    
+    {
+    "username":"ornella",
+    "password":"test",
+    "roles":["student","instructor"]    
+    }
+    '''
     username = user_data.username
     userpwd = user_data.password
     userrole = user_data.roles
 
-    user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()[0]
+    user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
 
     if user_verify is None or not verify_password(userpwd, user_verify[2]):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
-    roles = db.execute(f"SELECT roles.rolename FROM roles JOIN userroles ON roles.roleid = userroles.roleid WHERE userroles.user_id=?",(user_verify[0],)).fetchall()
+    roles = db.execute(f"SELECT roles.rolename FROM roles JOIN userroles ON roles.roleid = userroles.roleid WHERE userroles.userid=?",(user_verify[0],)).fetchall()
     roles = [row[0] for row in roles]
-    if userrole not in roles:
-        raise HTTPException(status_code=400, detail="Role not registered for the given user") 
+    print(roles)
+    for r in  userrole:
+        if r not in roles:
+            raise HTTPException(status_code=400, detail="Role not registered for the given user") 
     
     '''token_expiry = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": username}, expires=token_expiry)
@@ -144,13 +167,22 @@ def login(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     # sign this jwt_claim in krakend config
     return {jwt_claims}
 
-@app.get("/checkpwd")
+@app.post("/checkpwd")
 def checkpwd(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     """Check if the password is correct or not."""
+
+    '''
+    Request body
+    {
+    "username":"ornella",
+    "password":"test",
+    "roles":["student","instructor"]    
+    }
+    '''
     username = user_data.username
     userpwd = user_data.password
-    user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()[0]
-
+    user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
+    
     if user_verify is None or not verify_password(userpwd, user_verify[2]):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+       raise HTTPException(status_code=400, detail="Incorrect username or password")
     return {"status" : "200 OK"}
