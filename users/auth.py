@@ -28,6 +28,10 @@ class User(BaseModel):
     password : str
     roles : List[str]
 
+class Login(BaseModel):
+    username : str
+    password : str
+
 
 def get_db():
     with contextlib.closing(sqlite3.connect(settings.database)) as db:
@@ -92,8 +96,7 @@ def generate_claims(username, user_id, roles):
         "exp": int(exp.timestamp()),
     }'''
 
-    output = json.dumps(claims, indent=4)
-    return output
+    return claims
 
 @app.post("/register")
 def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
@@ -130,20 +133,19 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     return {"status" : "200 OK","message": f"User {username} successfully registered with role {roles}."}
 
 @app.post("/login")
-def login(user_data: User, db: sqlite3.Connection = Depends(get_db)):
+def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     """Login an existing user and generate JWT token for future requests."""
     '''
     Request body
     
     {
     "username":"ornella",
-    "password":"test",
-    "roles":["student","instructor"]    
+    "password":"test"   
     }
     '''
     username = user_data.username
     userpwd = user_data.password
-    userrole = user_data.roles
+    # userrole = user_data.roles
 
     user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
 
@@ -152,10 +154,6 @@ def login(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     
     roles = db.execute(f"SELECT roles.rolename FROM roles JOIN userroles ON roles.roleid = userroles.roleid WHERE userroles.userid=?",(user_verify[0],)).fetchall()
     roles = [row[0] for row in roles]
-    print(roles)
-    for r in  userrole:
-        if r not in roles:
-            raise HTTPException(status_code=400, detail="Role not registered for the given user") 
     
     '''token_expiry = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": username}, expires=token_expiry)
@@ -165,18 +163,17 @@ def login(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     # if successful, then return JWT Claims
     jwt_claims = generate_claims(username, user_verify[0], roles)
     # sign this jwt_claim in krakend config
-    return {jwt_claims}
+    return {"access_token": jwt_claims}
 
 @app.post("/checkpwd")
-def checkpwd(user_data: User, db: sqlite3.Connection = Depends(get_db)):
+def checkpwd(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     """Check if the password is correct or not."""
 
     '''
     Request body
     {
     "username":"ornella",
-    "password":"test",
-    "roles":["student","instructor"]    
+    "password":"test"
     }
     '''
     username = user_data.username
@@ -185,4 +182,4 @@ def checkpwd(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     
     if user_verify is None or not verify_password(userpwd, user_verify[2]):
        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    return {"status" : "200 OK"}
+    return {"detail" : "Password Correct"}

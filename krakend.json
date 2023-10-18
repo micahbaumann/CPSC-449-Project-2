@@ -1,6 +1,11 @@
 {
     "$schema": "https://www.krakend.io/schema/v2.4/krakend.json",
     "version": 3,
+    "extra_config": {
+        "router": {
+          "return_error_msg": true
+        }
+      },
     "endpoints": [
             {
                 "endpoint": "/student/list",
@@ -291,7 +296,6 @@
             {
                 "endpoint": "/user/login",
                 "method": "POST",
-                "output_encoding": "no-op",
                 "backend": [
                 {
                     "url_pattern": "/login",
@@ -299,23 +303,31 @@
                     "host": [
                         "http://localhost:5100"
                     ],
-                    "encoding": "no-op",
                     "extra_config": {
                         "backend/http": {
                             "return_error_details": "backend_alias"
                         }
                     }
                 }
-                ]
+                ],
+                "extra_config": {
+                    "auth/signer": {
+                        "alg": "RS256",
+                        "kid": "sim1",
+                        "keys_to_sign": ["access_token"],
+                        "jwk_local_path": "etc/jwk.json",
+                        "disable_jwk_security": true
+                    }
+                }
             },
             {
                 "endpoint": "/user/checkpwd",
-                "method": "GET",
+                "method": "POST",
                 "output_encoding": "no-op",
                 "backend": [
                 {
                     "url_pattern": "/checkpwd",
-                    "method": "GET",
+                    "method": "POST",
                     "host": [
                         "http://localhost:5100"
                     ],
