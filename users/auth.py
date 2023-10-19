@@ -27,6 +27,8 @@ class User(BaseModel):
     username : str
     password : str
     roles : List[str]
+    name : str
+    email : str
 
 class Login(BaseModel):
     username : str
@@ -79,8 +81,8 @@ def expiration_in(minutes):
     return creation, expiration
 
 
-def generate_claims(username, user_id, roles):
-    _, exp = expiration_in(20)
+def generate_claims(username, user_id, roles, name, email):
+    _, exp = expiration_in(2000)
 
     claims = {
         "aud": "localhost:5200",
@@ -89,6 +91,8 @@ def generate_claims(username, user_id, roles):
         "jti": str(user_id),
         "roles": roles,
         "exp": int(exp.timestamp()),
+        "name": name,
+        "email": email,
     }
     '''token = {
         "access_token": claims,
@@ -107,13 +111,17 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     {
     "username":"ornella",
     "password":"test",
-    "roles":["student","instructor"]    
+    "roles":["student","instructor"],
+    "name":"ornella",
+    "email":"ornella@example.com"
     }
     '''
     username = user_data.username
     userpwd = user_data.password
     # roles = [role.strip() for role in user_data.roles.split(",")]
     roles = user_data.roles
+    name = user_data.name
+    email = user_data.email
 
     # check that the username is not already taken
     user_exists = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
@@ -122,7 +130,7 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
 
     # create new user
     hashed_pwd = get_hashed_pwd(userpwd)
-    cursor = db.execute(f"INSERT INTO Registrations (Username, UserPassword) VALUES  (?,?)", (username, hashed_pwd))
+    cursor = db.execute(f"INSERT INTO Registrations (Username, UserPassword, FullName, Email) VALUES  (?,?,?,?)", (username, hashed_pwd, name, email))
     user_id =  cursor.lastrowid #db.execute("SELECT UserId from Registrations ORDER BY UserId DESC LIMIT 1").fetchone()[0]
 
     for role in roles:
@@ -149,7 +157,7 @@ def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
 
     user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
 
-    if user_verify is None or not verify_password(userpwd, user_verify[2]):
+    if user_verify is None or not verify_password(userpwd, user_verify[4]):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
     roles = db.execute(f"SELECT roles.rolename FROM roles JOIN userroles ON roles.roleid = userroles.roleid WHERE userroles.userid=?",(user_verify[0],)).fetchall()
@@ -161,7 +169,7 @@ def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     db.commit()'''
 
     # if successful, then return JWT Claims
-    jwt_claims = generate_claims(username, user_verify[0], roles)
+    jwt_claims = generate_claims(username, user_verify[0], roles, user_verify[2], user_verify[3])
     # sign this jwt_claim in krakend config
     return {"access_token": jwt_claims}
 
@@ -180,6 +188,23 @@ def checkpwd(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     userpwd = user_data.password
     user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
     
-    if user_verify is None or not verify_password(userpwd, user_verify[2]):
+    if user_verify is None or not verify_password(userpwd, user_verify[4]):
        raise HTTPException(status_code=400, detail="Incorrect username or password")
     return {"detail" : "Password Correct"}
+
+@app.get("/getuser/{uid}")
+def getuser(uid: int, db: sqlite3.Connection = Depends(get_db)):
+    # Gets a user's information
+    user = db.execute(f"SELECT Email, FullName, UserId, Username FROM Registrations WHERE UserId = ?",(uid,)).fetchone()
+    if user is None:
+        raise HTTPException(status_code=400, detail="No User Found")
+    
+    roles = db.execute(f"SELECT roles.rolename FROM roles JOIN userroles ON roles.roleid = userroles.roleid WHERE userroles.userid=?",(uid,)).fetchall()
+    roles = [row[0] for row in roles]
+    return {
+        "email": user["Email"],
+        "name": user["FullName"],
+        "userid": user["UserId"],
+        "username": user["Username"],
+        "roles": roles
+    }
