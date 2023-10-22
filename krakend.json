@@ -15,7 +15,9 @@
                     "url_pattern": "/list",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "extra_config": {
                         "backend/http": {
@@ -43,7 +45,9 @@
                     "url_pattern": "/enroll/{studentid}/{classid}/{sectionid}",
                     "method": "POST",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -63,7 +67,9 @@
                     "url_pattern": "/enrollmentdrop/{studentid}/{classid}/{sectionid}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -83,7 +89,9 @@
                     "url_pattern": "/waitlistdrop/{studentid}/{classid}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -103,7 +111,9 @@
                     "url_pattern": "/waitlist/{studentid}/{classid}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -123,7 +133,9 @@
                     "url_pattern": "/enrolled/{instructorid}/{classid}/{sectionid}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -143,7 +155,9 @@
                     "url_pattern": "/dropped/{instructorid}/{classid}/{sectionid}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -163,7 +177,9 @@
                     "url_pattern": "/drop/{instructorid}/{classid}/{studentid}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -183,7 +199,9 @@
                     "url_pattern": "/waitlist/{instructorid}/{classid}/{sectionid}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -203,7 +221,9 @@
                     "url_pattern": "/add/{classid}/{sectionid}/{instructorid}",
                     "method": "POST",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -223,7 +243,9 @@
                     "url_pattern": "/remove/{classid}/{sectionid}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -243,7 +265,9 @@
                     "url_pattern": "/freeze/{isfrozen}",
                     "method": "PUT",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -263,7 +287,9 @@
                     "url_pattern": "/change/{classid}/{newprofessorid}",
                     "method": "PUT",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
