@@ -15,7 +15,9 @@
                     "url_pattern": "/list",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "extra_config": {
                         "backend/http": {
@@ -43,7 +45,9 @@
                     "url_pattern": "/enroll/{JWT.jti}/{classid}/{sectionid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "POST",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -72,7 +76,9 @@
                     "url_pattern": "/enrollmentdrop/{JWT.jti}/{classid}/{sectionid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -101,7 +107,9 @@
                     "url_pattern": "/waitlistdrop/{JWT.jti}/{classid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -130,7 +138,9 @@
                     "url_pattern": "/waitlist/{JWT.jti}/{classid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -159,7 +169,9 @@
                     "url_pattern": "/enrolled/{JWT.jti}/{classid}/{sectionid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -188,7 +200,9 @@
                     "url_pattern": "/dropped/{JWT.jti}/{classid}/{sectionid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -217,7 +231,9 @@
                     "url_pattern": "/drop/{JWT.jti}/{classid}/{studentid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -246,7 +262,9 @@
                     "url_pattern": "/waitlist/{JWT.jti}/{classid}/{sectionid}/{JWT.name}/{JWT.sub}/{JWT.email}/{JWT.roles}",
                     "method": "GET",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -275,7 +293,9 @@
                     "url_pattern": "/add/{classid}/{sectionid}/{professorid}/{enrollmax}/{waitmax}",
                     "method": "POST",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -307,7 +327,9 @@
                     "url_pattern": "/remove/{classid}/{sectionid}",
                     "method": "DELETE",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -336,7 +358,9 @@
                     "url_pattern": "/freeze/{isfrozen}",
                     "method": "PUT",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
@@ -365,7 +389,9 @@
                     "url_pattern": "/change/{classid}/{newprofessorid}",
                     "method": "PUT",
                     "host": [
-                        "http://localhost:5000"
+                        "http://localhost:5000",
+                        "http://localhost:5001",
+                        "http://localhost:5002"
                     ],
                     "encoding": "no-op",
                     "extra_config": {
