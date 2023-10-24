@@ -6,6 +6,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request
 from pydantic_settings import BaseSettings
 WAITLIST_MAXIMUM = 15
 MAXIMUM_WAITLISTED_CLASSES = 3
+KRAKEND_PORT = "5600"
 
 class Settings(BaseSettings, env_file="enroll/.env", extra="ignore"):
     database: str
@@ -312,7 +313,7 @@ def freeze_enrollment(isfrozen: str, db: sqlite3.Connection = Depends(get_db)):
 
 @app.put("/change/{classid}/{newprofessorid}", status_code=status.HTTP_204_NO_CONTENT)
 def change_prof(request: Request, classid: int, newprofessorid: int, db: sqlite3.Connection = Depends(get_db)):
-    instructor_req = requests.get(f"http://localhost:5200/user/get/{newprofessorid}", headers={"Authorization": request.headers.get("Authorization")})
+    instructor_req = requests.get(f"http://localhost:{KRAKEND_PORT}/user/get/{newprofessorid}", headers={"Authorization": request.headers.get("Authorization")})
     instructor_info = instructor_req.json()
 
     if instructor_req.status_code != 200:
