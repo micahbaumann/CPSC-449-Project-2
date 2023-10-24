@@ -2,5 +2,5 @@
 
 echo "Updating database file"
 rm users.db
-sqlite3 users.db -init users.sql
+sqlite3 ./users/var/primary/fuse/users.db < ./users/var/users.sql
 echo "users Database file updated :)"
