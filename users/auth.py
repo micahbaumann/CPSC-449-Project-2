@@ -8,13 +8,8 @@ from pydantic_settings import BaseSettings
 import base64
 import hashlib
 import secrets
-import json
-from datetime import timedelta
 import datetime
-import os 
-import sys
 from typing import List
-#from jose import JWTError, jwt
 
 ALGORITHM = "pbkdf2_sha256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -65,16 +60,6 @@ def verify_password(password, password_hash):
     compare_hash = get_hashed_pwd(password, salt, iterations)
     return secrets.compare_digest(password_hash, compare_hash)
 
-'''def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt'''
-
 def expiration_in(minutes):
     creation = datetime.datetime.now(tz=datetime.timezone.utc)
     expiration = creation + datetime.timedelta(minutes=minutes)
@@ -82,7 +67,7 @@ def expiration_in(minutes):
 
 
 def generate_claims(username, user_id, roles, name, email):
-    _, exp = expiration_in(2000)
+    _, exp = expiration_in(ACCESS_TOKEN_EXPIRE_MINUTES)
 
     claims = {
         "aud": "localhost:5200",
@@ -94,11 +79,6 @@ def generate_claims(username, user_id, roles, name, email):
         "name": name,
         "email": email,
     }
-    '''token = {
-        "access_token": claims,
-        "refresh_token": claims,
-        "exp": int(exp.timestamp()),
-    }'''
 
     return claims
 
@@ -118,7 +98,6 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     '''
     username = user_data.username
     userpwd = user_data.password
-    # roles = [role.strip() for role in user_data.roles.split(",")]
     roles = user_data.roles
     name = user_data.name
     email = user_data.email
@@ -131,7 +110,7 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     # create new user
     hashed_pwd = get_hashed_pwd(userpwd)
     cursor = db.execute(f"INSERT INTO Registrations (Username, UserPassword, FullName, Email) VALUES  (?,?,?,?)", (username, hashed_pwd, name, email))
-    user_id =  cursor.lastrowid #db.execute("SELECT UserId from Registrations ORDER BY UserId DESC LIMIT 1").fetchone()[0]
+    user_id =  cursor.lastrowid
 
     for role in roles:
         db.execute(f"INSERT INTO Roles (Rolename) VALUES (?)", (role,))
@@ -153,7 +132,6 @@ def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     '''
     username = user_data.username
     userpwd = user_data.password
-    # userrole = user_data.roles
 
     user_verify = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
 
