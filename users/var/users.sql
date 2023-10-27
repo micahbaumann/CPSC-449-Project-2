@@ -1,6 +1,10 @@
 PRAGMA foreign_keys=ON;
 BEGIN TRANSACTION;
+
+DROP TABLE IF EXISTS Roles;
 DROP TABLE IF EXISTS Registrations;
+DROP TABLE IF EXISTS Roles;
+
 CREATE TABLE Registrations (
     UserId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     Username VARCHAR(30) NOT NULL UNIQUE,
@@ -23,21 +27,22 @@ INSERT INTO Registrations(UserId, Username, FullName, Email, UserPassword) VALUE
 (10, "anna", "Anna Kant", "akant@csu.fullerton.edu", "pbkdf2_sha256$600000$c9fc625a0e406cec90594958016ac631$5iDVmwSTF6K9K110LWBxH/xi0ZvwpgKt3y8gAMz0GzQ="),
 (11, "micah", "Micah Baumann", "mbaumann@csu.fullerton.edu", "pbkdf2_sha256$600000$c9fc625a0e406cec90594958016ac631$5iDVmwSTF6K9K110LWBxH/xi0ZvwpgKt3y8gAMz0GzQ=");
 
-DROP TABLE IF EXISTS Roles;
 CREATE TABLE Roles (
     RoleId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     RoleName VARCHAR(30) NOT NULL
 );
+
 INSERT INTO Roles VALUES 
 (1, 'Student'),
 (2, 'Instructor'),
 (3, 'Registrar');
-DROP TABLE IF EXISTS UserRoles;
+
 CREATE TABLE UserRoles (
     Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     RoleId INT NOT NULL REFERENCES Roles(RoleId),
     UserId INT NOT NULL REFERENCES Registrations(UserId)
 );
+
 INSERT INTO UserRoles(RoleId, UserId) VALUES 
 (1, 1),
 (1, 2),
@@ -52,4 +57,5 @@ INSERT INTO UserRoles(RoleId, UserId) VALUES
 (1, 11),
 (2, 11),
 (3, 11);
+
 COMMIT;
