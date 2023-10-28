@@ -10,12 +10,15 @@ import hashlib
 import secrets
 import datetime
 from typing import List
+import itertools
 
 ALGORITHM = "pbkdf2_sha256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class Settings(BaseSettings, env_file="users/.env", extra="ignore"):
     database: str
+    database_1: str
+    database_2: str
     logging_config: str
 
 class User(BaseModel):
@@ -29,13 +32,20 @@ class Login(BaseModel):
     username : str
     password : str
 
+settings = Settings()
+read_replicas = itertools.cycle([settings.database_1, settings.database_2])
 
-def get_db():
+def get_db_read():
+    with contextlib.closing(sqlite3.connect(next(read_replicas))) as db:
+        db.row_factory = sqlite3.Row
+        yield db
+
+def get_db_write():
     with contextlib.closing(sqlite3.connect(settings.database)) as db:
         db.row_factory = sqlite3.Row
         yield db
 
-settings = Settings()
+
 app = FastAPI()
 
 # given 260000 - modified to 600000 based on research
@@ -83,7 +93,7 @@ def generate_claims(username, user_id, roles, name, email):
     return claims
 
 @app.post("/register")
-def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
+def register_user(user_data: User, db_read: sqlite3.Connection = Depends(get_db_read), db_write: sqlite3.Connection = Depends(get_db_write)):
     """Register a new user."""
     '''
     Request body
@@ -103,24 +113,24 @@ def register_user(user_data: User, db: sqlite3.Connection = Depends(get_db)):
     email = user_data.email
 
     # check that the username is not already taken
-    user_exists = db.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
+    user_exists = db_read.execute(f"SELECT * FROM Registrations WHERE username = ?",(username,)).fetchone()
     if user_exists:
         raise HTTPException(status_code=400, detail="Username already used, try a new username")
 
     # create new user
     hashed_pwd = get_hashed_pwd(userpwd)
-    cursor = db.execute(f"INSERT INTO Registrations (Username, UserPassword, FullName, Email) VALUES  (?,?,?,?)", (username, hashed_pwd, name, email))
+    cursor = db_write.execute(f"INSERT INTO Registrations (Username, UserPassword, FullName, Email) VALUES  (?,?,?,?)", (username, hashed_pwd, name, email))
     user_id =  cursor.lastrowid
 
     for role in roles:
-        db.execute(f"INSERT INTO Roles (Rolename) VALUES (?)", (role,))
-        role_id = db.execute("SELECT RoleId from Roles ORDER BY RoleId DESC LIMIT 1").fetchone()[0]
-        db.execute("INSERT INTO UserRoles (RoleId, UserId) VALUES (?, ?)", (role_id, user_id))
-    db.commit()
+        db_write.execute(f"INSERT INTO Roles (Rolename) VALUES (?)", (role,))
+        role_id = db_read.execute("SELECT RoleId from Roles ORDER BY RoleId DESC LIMIT 1").fetchone()[0]
+        db_write.execute("INSERT INTO UserRoles (RoleId, UserId) VALUES (?, ?)", (role_id, user_id))
+    db_write.commit()
     return {"status" : "200 OK","message": f"User {username} successfully registered with role {roles}."}
 
 @app.post("/login")
-def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
+def login(user_data: Login, db: sqlite3.Connection = Depends(get_db_read)):
     """Login an existing user and generate JWT token for future requests."""
     '''
     Request body
@@ -140,11 +150,6 @@ def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     
     roles = db.execute(f"SELECT roles.rolename FROM roles JOIN userroles ON roles.roleid = userroles.roleid WHERE userroles.userid=?",(user_verify[0],)).fetchall()
     roles = [row[0] for row in roles]
-    
-    '''token_expiry = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": username}, expires=token_expiry)
-    db.execute(f"UPDATE Registrations SET BearerToken = ? WHERE username = ?",(access_token, username))
-    db.commit()'''
 
     # if successful, then return JWT Claims
     jwt_claims = generate_claims(username, user_verify[0], roles, user_verify[2], user_verify[3])
@@ -152,7 +157,7 @@ def login(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     return {"access_token": jwt_claims}
 
 @app.post("/checkpwd")
-def checkpwd(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
+def checkpwd(user_data: Login, db: sqlite3.Connection = Depends(get_db_read)):
     """Check if the password is correct or not."""
 
     '''
@@ -171,7 +176,7 @@ def checkpwd(user_data: Login, db: sqlite3.Connection = Depends(get_db)):
     return {"detail" : "Password Correct"}
 
 @app.get("/getuser/{uid}")
-def getuser(uid: int, db: sqlite3.Connection = Depends(get_db)):
+def getuser(uid: int, db: sqlite3.Connection = Depends(get_db_read)):
     # Gets a user's information
     user = db.execute(f"SELECT Email, FullName, UserId, Username FROM Registrations WHERE UserId = ?",(uid,)).fetchone()
     if user is None:
