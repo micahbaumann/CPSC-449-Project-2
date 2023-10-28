@@ -17,8 +17,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class Settings(BaseSettings, env_file="users/.env", extra="ignore"):
     database: str
-    database_1: str
     database_2: str
+    database_3: str
     logging_config: str
 
 class User(BaseModel):
@@ -33,7 +33,7 @@ class Login(BaseModel):
     password : str
 
 settings = Settings()
-read_replicas = itertools.cycle([settings.database_1, settings.database_2])
+read_replicas = itertools.cycle([settings.database_2, settings.database_3])
 
 def get_db_read():
     with contextlib.closing(sqlite3.connect(next(read_replicas))) as db:
