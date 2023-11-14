@@ -1,4 +1,8 @@
 __pycache__/
 
-#DynamoDB Local
+#DynamoDB stuff
 DynamoDBLocal_lib/
+DynamoDBLocal.jar
+LICENSE.txt
+README.txt
+THIRD-PARTY-LICENSES.txt
