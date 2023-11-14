@@ -6,3 +6,5 @@ DynamoDBLocal.jar
 LICENSE.txt
 README.txt
 THIRD-PARTY-LICENSES.txt
+dynamodb-local-metadata.json
+shared-local-instance.db
