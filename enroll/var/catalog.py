@@ -1,19 +1,20 @@
 import boto3
+from botocore.exceptions import ClientError
+import logging
+from datetime import datetime
+from decimal import Decimal
 
+from dynamodb_dummy_data import DynamodbData
 # Create a DynamoDB resource
 
+logger = logging.getLogger(__name__)
 
 
-# Delete tables if exists
 class Dynamodbmodel:
 
-    def __init__(self) -> None:
-        self.dynamodb_resource = boto3.resource('dynamodb',
-            aws_access_key_id='fakeMyKeyId',
-            aws_secret_access_key='fakeSecretAccessKey',
-            endpoint_url='http://localhost:8000',
-            region_name='us-west-2'
-        )
+    def __init__(self, dynamodb_resource) -> None:
+
+        self.dynamodb_resource = dynamodb_resource
 
     def delete_table_if_exists(self):
         
@@ -30,8 +31,8 @@ class Dynamodbmodel:
                 t.wait_until_not_exists()
         return
 
-    # Create Users table
     def create_tables(self):
+
         users_table = self.dynamodb_resource.create_table(
             TableName='Users',
             KeySchema=[
@@ -66,9 +67,8 @@ class Dynamodbmodel:
             }
         )
         users_table.wait_until_exists()
-        users_table.put_item(Item={'UserId': 100,'Username':"ornella","Fullname":"Ornella Dsouza","Email":"o@gmail.com"})
         
-        #response = users_table.query(KeyConditionExpression=Key("UserId").eq(100))
+        # users_table.put_item(Item={'UserId': 100,'Username':"ornella","Fullname":"Ornella Dsouza","Email":"o@gmail.com"})
         
         # Create Classes table
         classes_table = self.dynamodb_resource.create_table(
@@ -217,11 +217,30 @@ class Dynamodbmodel:
         )
         freeze_table.wait_until_exists()
 
-        # Insert initial data into Freeze table
-        freeze_table.put_item(Item={'IsFrozen': 0})
+        load_data = {  
+                        users_table : 'users.json', 
+                        classes_table : 'classes.json', 
+                        students_table : 'students.json', 
+                        enrollments_table : 'enrollments.json', 
+                        instructors_table : 'instructors.json', 
+                        instructor_classes_table : 'instructorclasses.json', 
+                        freeze_table : 'freeze.json'
+                    }
+
+        for table_object, file_name in load_data.items():
+            DynamodbData(dynamodb_resource).load_dummy_data(table_object,'jsonData/'+ file_name)
+
+        return
 
 if __name__ == "__main__":
-    obj = Dynamodbmodel()
+    dynamodb_resource = boto3.resource('dynamodb',
+            aws_access_key_id='fakeMyKeyId',
+            aws_secret_access_key='fakeSecretAccessKey',
+            endpoint_url='http://localhost:8000',
+            region_name='us-west-2'
+        )
+    obj = Dynamodbmodel(dynamodb_resource)
     obj.delete_table_if_exists()
     obj.create_tables()
-    print("Dynamodb tables created")
+    
+    print("Dynamodb tables dummy data load job completed")

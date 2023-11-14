@@ -1,0 +1,63 @@
+[
+    {
+      "InstructorClassesID": 1,
+      "InstructorID": 11,
+      "ClassID": 1,
+      "SectionNumber": 1
+    },
+    {
+      "InstructorClassesID": 2,
+      "InstructorID": 12,
+      "ClassID": 2,
+      "SectionNumber": 2
+    },
+    {
+      "InstructorClassesID": 3,
+      "InstructorID": 13,
+      "ClassID": 3,
+      "SectionNumber": 1
+    },
+    {
+      "InstructorClassesID": 4,
+      "InstructorID": 14,
+      "ClassID": 4,
+      "SectionNumber": 3
+    },
+    {
+      "InstructorClassesID": 5,
+      "InstructorID": 15,
+      "ClassID": 5,
+      "SectionNumber": 1
+    },
+    {
+      "InstructorClassesID": 6,
+      "InstructorID": 11,
+      "ClassID": 6,
+      "SectionNumber": 2
+    },
+    {
+      "InstructorClassesID": 7,
+      "InstructorID": 12,
+      "ClassID": 7,
+      "SectionNumber": 1
+    },
+    {
+      "InstructorClassesID": 8,
+      "InstructorID": 13,
+      "ClassID": 8,
+      "SectionNumber": 1
+    },
+    {
+      "InstructorClassesID": 9,
+      "InstructorID": 14,
+      "ClassID": 9,
+      "SectionNumber": 2
+    },
+    {
+      "InstructorClassesID": 10,
+      "InstructorID": 15,
+      "ClassID": 10,
+      "SectionNumber": 1
+    }
+  ]
+  
