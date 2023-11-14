@@ -18,6 +18,6 @@
    ```
    Run `catalog.py` for enroll service:
    ```bash
-   catalog.py  //Ensure dynamodb is running
+   python3 catalog.py  //Ensure dynamodb is running
    ```
 4. When the SQLite CLI opens, enter `.quit`.
