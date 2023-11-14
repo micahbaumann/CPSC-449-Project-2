@@ -12,8 +12,12 @@
    ```bash
    cd users/var
    ```
-3. Run `updateDB.sh` for that service:
+3. Run `updateDB.sh` for users service:
    ```bash
    ./updateDB.sh
+   ```
+   Run `catalog.py` for enroll service:
+   ```bash
+   python3 catalog.py  //Ensure dynamodb is running
    ```
 4. When the SQLite CLI opens, enter `.quit`.
