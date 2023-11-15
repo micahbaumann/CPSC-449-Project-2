@@ -2,6 +2,15 @@ import sqlite3
 import contextlib
 import requests
 
+from datatime import datetime
+import logging
+import boto3
+from botocore.exception import ClientError
+from pprint import pprint
+from .var import dynamodb_dummy_data 
+
+
+
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from pydantic_settings import BaseSettings
 WAITLIST_MAXIMUM = 15
@@ -19,6 +28,12 @@ def get_db():
 
 settings = Settings()
 app = FastAPI()
+
+dynamodb_resource = boto3.client('dynamodb',
+                                 aws_access_key_id='fakeMyKeyId',
+                                 aws_secret_access_key ='fakeSecretAccessKey',
+                                 endpoint_url ="http://localhost:5700",
+                                 region_name='us-west-2')
 
 def check_id_exists_in_table(id_name: str,id_val: int, table_name: str, db: sqlite3.Connection = Depends(get_db)) -> bool:
     """return true if value found, false if not found"""
@@ -44,17 +59,22 @@ def check_user(id_val: int, username: str, name: str, email: str, roles: list, d
 ### Student related endpoints
 
 @app.get("/list")
-def list_open_classes(db: sqlite3.Connection = Depends(get_db)):
-    if (db.execute("SELECT IsFrozen FROM Freeze").fetchone()[0] == 1):
-        return {"Classes": []}
+# def list_open_classes(db: sqlite3.Connection = Depends(get_db)):
+#     if (db.execute("SELECT IsFrozen FROM Freeze").fetchone()[0] == 1):
+#         return {"Classes": []}
     
-    classes = db.execute(
-        "SELECT * FROM Classes WHERE \
-            Classes.MaximumEnrollment > (SELECT COUNT(EnrollmentID) FROM Enrollments WHERE Enrollments.ClassID = Classes.ClassID) \
-            OR Classes.WaitlistMaximum > (SELECT COUNT(WaitlistID) FROM Waitlists WHERE Waitlists.ClassID = Classes.ClassID)"
+#     classes = db.execute(
+#         "SELECT * FROM Classes WHERE \
+#             Classes.MaximumEnrollment > (SELECT COUNT(EnrollmentID) FROM Enrollments WHERE Enrollments.ClassID = Classes.ClassID) \
+#             OR Classes.WaitlistMaximum > (SELECT COUNT(WaitlistID) FROM Waitlists WHERE Waitlists.ClassID = Classes.ClassID)"
+#     )
+#     return {"Classes": classes.fetchall()}
+def list_all_classes():
+    response=dynamodb_resource.execute_statement(
+        Statement="Select * FROM Classes",
+        ConsistentRead=True
     )
-    return {"Classes": classes.fetchall()}
-
+    return response['Item']
 @app.post("/enroll/{studentid}/{classid}/{sectionid}/{name}/{username}/{email}/{roles}", status_code=status.HTTP_201_CREATED)
 def enroll_student_in_class(studentid: int, classid: int, sectionid: int, name: str, username: str, email: str, roles: str, db: sqlite3.Connection = Depends(get_db)):
     roles = [word.strip() for word in roles.split(",")]
