@@ -4,7 +4,7 @@
       "CourseCode": "ABC 101",
       "SectionNumber": 1,
       "Name": "Introduction to ABC",
-      "MaximumEnrollment": 25,
+      "MaximumEnrollment": 2,
       "WaitlistCount": 0,
       "WaitlistMaximum": 15
     },

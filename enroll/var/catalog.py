@@ -109,6 +109,7 @@ class Dynamodbmodel:
             TableName='Enrollments',
             KeySchema=[
                 {'AttributeName': 'EnrollmentID', 'KeyType': 'HASH'}
+                # {'AttributeName': 'StudentID', 'KeyType': 'RANGE'} # ADDED
             ],
             AttributeDefinitions=[
                 {'AttributeName': 'EnrollmentID', 'AttributeType': 'N'},
@@ -236,7 +237,7 @@ if __name__ == "__main__":
     dynamodb_resource = boto3.resource('dynamodb',
             aws_access_key_id='fakeMyKeyId',
             aws_secret_access_key='fakeSecretAccessKey',
-            endpoint_url='http://localhost:8000',
+            endpoint_url='http://localhost:5700',
             region_name='us-west-2'
         )
     obj = Dynamodbmodel(dynamodb_resource)

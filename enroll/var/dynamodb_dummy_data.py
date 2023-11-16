@@ -1,4 +1,4 @@
-import imp
+#import imp
 import boto3
 from botocore.exceptions import ClientError
 import logging

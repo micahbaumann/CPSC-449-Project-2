@@ -9,6 +9,9 @@ import boto3
 from pprint import pprint
 from .var import dynamodb_dummy_data 
 
+import redis
+r=redis.Redis(host='localhost',port=6379,db=0)
+
 
 
 from fastapi import FastAPI, Depends, HTTPException, status, Request
@@ -80,39 +83,116 @@ def enroll_student_in_class(studentid: int, classid: int, sectionid: int, name: 
     roles = [word.strip() for word in roles.split(",")]
     check_user(studentid, username, name, email, roles, db)
     
-    classes = db.execute("SELECT * FROM Classes WHERE ClassID = ?", (classid,)).fetchone()
+    # classes = db.execute("SELECT * FROM Classes WHERE ClassID = ?", (classid,)).fetchone()
+    # if not classes:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail="Class not found")
+    classes=dynamodb_resource.execute_statement(
+        Statement=f"Select * FROM Classes WHERE ClassID={classid} AND SectionNumber={sectionid}",
+        ConsistentRead=True
+    )   
+    output=classes['Items'][0]
+    print(output)
     if not classes:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Class not found")
-    
-    enrolled = db.execute("SELECT * FROM Enrollments WHERE ClassID = ? AND StudentID = ? AND EnrollmentStatus='ENROLLED'", (classid, studentid)).fetchone()
-    if enrolled:
+
+    enrolled = dynamodb_resource.execute_statement(
+        Statement=f"Select * FROM Enrollments WHERE ClassID={classid} AND SectionNumber={sectionid} AND StudentID={studentid} AND EnrollmentStatus='ENROLLED'",
+        ConsistentRead=True
+    )
+    enroll_count=dynamodb_resource.execute_statement(
+        Statement=f"Select * FROM Enrollments WHERE ClassID={classid} AND SectionNumber={sectionid}",
+        ConsistentRead=True
+    )
+    enroll_count=len(enroll_count['Items'])
+    print("This is enroll_count" + str(enroll_count))
+    if enrolled['Items']:
+        print("This is enrolled_output" + str(enrolled['Items']))
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Student already enrolled")
+    enrolled_output=enrolled['Items']
+
+    if not enrolled_output:
+        print('is this executing???')
+        enrollments = 0
+    else:
+        enrollments+=1
+   
+    if enrolled['Items']:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Student already enrolled")
     
-    class_section = classes["SectionNumber"]
-    count = db.execute("SELECT COUNT() FROM Enrollments WHERE ClassID = ?", (classid,)).fetchone()[0]
-    waitlist_count = db.execute("SELECT COUNT() FROM Waitlists WHERE ClassID = ?", (classid,)).fetchone()[0]
-    print(count)
-    if count < classes["MaximumEnrollment"]:
-        db.execute("INSERT INTO Enrollments(StudentID, ClassID, SectionNumber) VALUES(?,?,?)",(studentid, classid, class_section))
-        db.commit()
+    class_section = classes["Items"][0]["SectionNumber"]
+    class_section = int(class_section['N'])
+    print(class_section)
+    print(sectionid)
+    # count = db.execute("SELECT COUNT() FROM Enrollments WHERE ClassID = ?", (classid,)).fetchone()[0]
+    count = dynamodb_resource.execute_statement(
+        Statement=f"Select * FROM Enrollments WHERE ClassID={classid} and SectionID={sectionid}",
+        ConsistentRead=True
+    )
+
+    count=int(output['MaximumEnrollment']['N'])
+    print("This is the count for max en " +str(count))
+    max_waitlist= int(output['WaitlistMaximum']['N'])
+    # waitlist_count = db.execute("SELECT COUNT() FROM Waitlists WHERE ClassID = ?", (classid,)).fetchone()[0]
+    waitlist_count = r.zcard(f"waitlist{classid}:{sectionid}") #REDIS
+    print("This is the count for max en " +str(count))
+    # if count < classesnt for ["MaximumEnrollment"]:
+    #     db.execute("INSERT INTO Enrollments(StudentID, ClassID, SectionNumber) VALUES(?,?,?)",(studentid, classid, class_section))
+    #     db.commit()
+    #     return {"message": f"Enrolled student {studentid} in section {class_section} of class {classid}."}
+    # print(classes)
+    # classes =int(classes["MaximumEnrollment"]['N'])
+    # print(classes)
+    enrollment_id=dynamodb_resource.execute_statement(
+        Statement=f"Select * FROM Enrollments",
+        ConsistentRead=True
+    )
+    enrollment_id=len(enrollment_id['Items'])
+    print(enrollment_id)
+    enrollment_id+=1
+    # enrollment_id = 15
+    # user_metadata = dynamodb_resource.execute_statement(
+    #     TableName='Enrollments',
+    #     Key={'EnrollmentID':{'N':str(enrollment_id)}},
+    # )
+
+    if enroll_count < count:
+        
+        dynamodb_resource.execute_statement(
+            Statement=f"INSERT INTO Enrollments VALUE {{'EnrollmentID':{enrollment_id},'StudentID':{studentid},'SectionNumber':{sectionid},'ClassID':{classid},'EnrollmentStatus':'ENROLLED'}}",
+        )
+        print("Enroll insert")
+        enrollments+=1
+        print("This is Enrollments" + str(enrollments))
+        enrollment_id+=1
         return {"message": f"Enrolled student {studentid} in section {class_section} of class {classid}."}
-    elif waitlist_count < classes["WaitlistMaximum"]:
-        waitlisted = db.execute("SELECT * FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid, classid)).fetchone()
+        
+    elif waitlist_count < max_waitlist:
+        # waitlisted = db.execute("SELECT * FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid, classid)).fetchone()
+        waitlisted = r.zscore(f"waitlist:{classid}:{sectionid}",f"{studentid}") #REDIS
         if waitlisted:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Student already waitlisted")
 
-        max_waitlist_position = db.execute("SELECT MAX(Position) FROM Waitlists WHERE ClassID = ? AND  SectionNumber = ?",(classid,sectionid)).fetchone()[0]
+        # max_waitlist_position = db.execute("SELECT MAX(Position) FROM Waitlists WHERE ClassID = ? AND  SectionNumber = ?",(classid,sectionid)).fetchone()[0]
+        max_waitlist_position = r.zcard(f"waitlist:{classid}:{sectionid}") #REDIS
         print("Position: " + str(max_waitlist_position))
         if not max_waitlist_position: max_waitlist_position = 0
-        db.execute("INSERT INTO Waitlists(StudentID, ClassID, SectionNumber, Position) VALUES(?,?,?,?)",(studentid, classid, class_section, max_waitlist_position + 1))
-        db.commit()
-        return {"message": f"Enrolled in waitlist {class_section} of class {classid}."}
+        # db.execute("INSERT INTO Waitlists(StudentID, ClassID, SectionNumber, Position) VALUES(?,?,?,?)",(studentid, classid, class_section, max_waitlist_position + 1))
+        # db.commit()
+        max_waitlist_position+=1
+
+        r.zadd(f"waitlist:{classid}:{sectionid}",{studentid:max_waitlist_position})
+        return {"message": f"Enrolled in waitlist {max_waitlist_position} for class {classid} section {sectionid}."}
     else:
         return {"message": f"Unable to enroll in waitlist for the class, reached the maximum number of students"}
 
@@ -154,27 +234,40 @@ def drop_student_from_class(studentid: int, classid: int, sectionid: int, name: 
         ]}
     return {"Result": [{"Student dropped from class": dropped_student} ]}
 
-@app.delete("/waitlistdrop/{studentid}/{classid}/{name}/{username}/{email}/{roles}")
-def remove_student_from_waitlist(studentid: int, classid: int, name: str, username: str, email: str, roles: str, db: sqlite3.Connection = Depends(get_db)):
+@app.delete("/waitlistdrop/{studentid}/{classid}/{sectionid}/{name}/{username}/{email}/{roles}")
+def remove_student_from_waitlist(studentid: int, classid: int,sectionid:int, name: str, username: str, email: str, roles: str, db: sqlite3.Connection = Depends(get_db)):
     roles = [word.strip() for word in roles.split(",")]
     check_user(studentid, username, name, email, roles, db)
-    exists = db.execute("SELECT * FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid, classid)).fetchone()
+    exists=r.zscore(f"waitlist{classid}:{sectionid}",f"{studentid}") #REDIS
     if not exists:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"Error": "No such student found in the given class on the waitlist"}
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found in waitlist",
         )
-    db.execute("DELETE FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid, classid))
-    db.execute("UPDATE Classes SET WaitlistCount = WaitlistCount - 1 WHERE ClassID = ?", (classid,))
-    db.commit()
+    
+    # exists = db.execute("SELECT * FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid, classid)).fetchone()
+    # if not exists:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail={"Error": "No such student found in the given class on the waitlist"}
+    #     )
+    # db.execute("DELETE FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid, classid))
+    removed_score=r.zscore(f"waitlist{classid}:{sectionid}",f"{studentid}") #REDIS
+    r.zrem(f"waitlist{classid}:{sectionid}",f"{studentid}") #REDIS
+    members=r.zrange(f"waitlist{classid}:{sectionid}",0,-1, withscores=True) #REDIS
+    for member,score in members:
+        if score>removed_score:
+            r.zincrby(f"waitlist{classid}:{sectionid}",-1,member)
+    # db.execute("UPDATE Classes SET WaitlistCount = WaitlistCount - 1 WHERE ClassID = ?", (classid,))
+    # db.commit()
     return {"Element removed": exists}
     
-@app.get("/waitlist/{studentid}/{classid}/{name}/{username}/{email}/{roles}")
-def view_waitlist_position(studentid: int, classid: int, name: str, username: str, email: str, roles: str, db: sqlite3.Connection = Depends(get_db)):
+@app.get("/waitlist/{studentid}/{classid}/{sectionid}/{name}/{username}/{email}/{roles}")
+def view_waitlist_position(studentid: int, classid: int,sectionid:int, name: str, username: str, email: str, roles: str, db: sqlite3.Connection = Depends(get_db)):
     roles = [word.strip() for word in roles.split(",")]
     check_user(studentid, username, name, email, roles, db)
     position = None
-    position = db.execute("SELECT Position FROM Waitlists WHERE StudentID = ? AND ClassID = ?", (studentid,classid,)).fetchone()
+    position = r.zscore(f"waitlist{classid}:{sectionid}",f"{studentid}") #REDIS
     
     if position:
         message = f"Student {studentid} is on the waitlist for class {classid} in position"
