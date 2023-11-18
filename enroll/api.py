@@ -435,18 +435,26 @@ def change_prof(request: Request, classid: int, newprofessorid: int, db: sqlite3
             detail="Instructor does not exist",
         )
 
-    check_user(instructor_info["userid"], instructor_info["username"], instructor_info["name"], instructor_info["email"], instructor_info["roles"], db)
-    valid_class_id = check_id_exists_in_table("ClassID",classid,"Classes",db)
-    if not valid_class_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Class does not exist",
-        )
+    # These functions might need to get updated since the use sqlite.
+    # check_user(instructor_info["userid"], instructor_info["username"], instructor_info["name"], instructor_info["email"], instructor_info["roles"], db)
+    # valid_class_id = check_id_exists_in_table("ClassID",classid,"Classes",db)
+    # if not valid_class_id:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail="Class does not exist",
+    #     )
     
     try:
-        db.execute("UPDATE InstructorClasses SET InstructorID=? WHERE ClassID=?", (instructor_info["userid"], classid))
-        db.commit()
-    except sqlite3.IntegrityError as e:
+        response=dynamodb_resource.execute_statement(
+            Statement=f"Select * FROM InstructorClasses WHERE ClassID={classid}") # should we also add section number?
+        
+        instructor_classes_id = response['Items'][0]['InstructorClassesID']['N']
+        print(instructor_classes_id)
+
+        dynamodb_resource.execute_statement(
+            Statement=f"Update InstructorClasses SET InstructorID={newprofessorid} WHERE InstructorClassesID={instructor_classes_id}")
+
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"type": type(e).__name__, "msg": str(e)},
