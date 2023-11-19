@@ -415,10 +415,10 @@ def remove_class(classid: str, sectionid: str, db: sqlite3.Connection = Depends(
 
 @app.put("/freeze/{isfrozen}", status_code=status.HTTP_204_NO_CONTENT)
 def freeze_enrollment(isfrozen: int):
-    
+
     if isfrozen in [0,1]:
         response = dynamodb_resource.execute_statement(
-            Statement=f"UPDATE Freeze SET IsFrozen = {isfrozen} Where FreezeFlag = 'Current_Status'",  # Replace 'PartitionKey' and 'some_key' with your actual ke
+            Statement=f"UPDATE Freeze SET IsFrozen = {isfrozen} Where FreezeFlag = 'Current_Status'",
             ConsistentRead=True
         )
         return None  # 204 response has no content
