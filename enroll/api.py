@@ -424,8 +424,8 @@ def freeze_enrollment(isfrozen: str, db: sqlite3.Connection = Depends(get_db)):
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Freeze must be true or false.")
 
-@app.put("/change/{classid}/{newprofessorid}", status_code=status.HTTP_204_NO_CONTENT)
-def change_prof(request: Request, classid: int, newprofessorid: int, db: sqlite3.Connection = Depends(get_db)):
+@app.put("/change/{classid}/{sectionnumber}/{newprofessorid}", status_code=status.HTTP_204_NO_CONTENT)
+def change_prof(request: Request, classid: int, sectionnumber: int, newprofessorid: int, db: sqlite3.Connection = Depends(get_db)):
     instructor_req = requests.get(f"http://localhost:{KRAKEND_PORT}/user/get/{newprofessorid}", headers={"Authorization": request.headers.get("Authorization")})
     instructor_info = instructor_req.json()
 
@@ -446,7 +446,7 @@ def change_prof(request: Request, classid: int, newprofessorid: int, db: sqlite3
     
     try:
         response=dynamodb_resource.execute_statement(
-            Statement=f"Select * FROM InstructorClasses WHERE ClassID={classid}") # should we also add section number?
+            Statement=f"Select * FROM InstructorClasses WHERE ClassID={classid} AND SectionNumber={sectionnumber}")
         
         instructor_classes_id = response['Items'][0]['InstructorClassesID']['N']
         print(instructor_classes_id)
