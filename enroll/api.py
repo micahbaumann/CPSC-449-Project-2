@@ -424,8 +424,8 @@ def freeze_enrollment(isfrozen: str, db: sqlite3.Connection = Depends(get_db)):
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Freeze must be true or false.")
 
-@app.put("/change/{classid}/{newprofessorid}", status_code=status.HTTP_204_NO_CONTENT)
-def change_prof(request: Request, classid: int, newprofessorid: int, db: sqlite3.Connection = Depends(get_db)):
+@app.put("/change/{classid}/{sectionnumber}/{newprofessorid}", status_code=status.HTTP_204_NO_CONTENT)
+def change_prof(request: Request, classid: int, sectionnumber: int, newprofessorid: int, db: sqlite3.Connection = Depends(get_db)):
     instructor_req = requests.get(f"http://localhost:{KRAKEND_PORT}/user/get/{newprofessorid}", headers={"Authorization": request.headers.get("Authorization")})
     instructor_info = instructor_req.json()
 
@@ -435,18 +435,26 @@ def change_prof(request: Request, classid: int, newprofessorid: int, db: sqlite3
             detail="Instructor does not exist",
         )
 
-    check_user(instructor_info["userid"], instructor_info["username"], instructor_info["name"], instructor_info["email"], instructor_info["roles"], db)
-    valid_class_id = check_id_exists_in_table("ClassID",classid,"Classes",db)
-    if not valid_class_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Class does not exist",
-        )
+    # These functions might need to get updated since the use sqlite.
+    # check_user(instructor_info["userid"], instructor_info["username"], instructor_info["name"], instructor_info["email"], instructor_info["roles"], db)
+    # valid_class_id = check_id_exists_in_table("ClassID",classid,"Classes",db)
+    # if not valid_class_id:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail="Class does not exist",
+    #     )
     
     try:
-        db.execute("UPDATE InstructorClasses SET InstructorID=? WHERE ClassID=?", (instructor_info["userid"], classid))
-        db.commit()
-    except sqlite3.IntegrityError as e:
+        response=dynamodb_resource.execute_statement(
+            Statement=f"Select * FROM InstructorClasses WHERE ClassID={classid} AND SectionNumber={sectionnumber}")
+        
+        instructor_classes_id = response['Items'][0]['InstructorClassesID']['N']
+        print(instructor_classes_id)
+
+        dynamodb_resource.execute_statement(
+            Statement=f"Update InstructorClasses SET InstructorID={newprofessorid} WHERE InstructorClassesID={instructor_classes_id}")
+
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"type": type(e).__name__, "msg": str(e)},
