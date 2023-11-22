@@ -414,15 +414,16 @@ def remove_class(classid: str, sectionid: str, db: sqlite3.Connection = Depends(
     return {"Removed" : f"Course {classid} Section {sectionid}"}
 
 @app.put("/freeze/{isfrozen}", status_code=status.HTTP_204_NO_CONTENT)
-def freeze_enrollment(isfrozen: str, db: sqlite3.Connection = Depends(get_db)):
-    if (isfrozen.lower() == "true"):
-        db.execute("UPDATE Freeze SET IsFrozen = true")
-        db.commit()
-    elif (isfrozen.lower() == "false"):
-        db.execute("UPDATE Freeze SET IsFrozen = false")
-        db.commit()
+def freeze_enrollment(isfrozen: int):
+
+    if isfrozen in [0,1]:
+        response = dynamodb_resource.execute_statement(
+            Statement=f"UPDATE Freeze SET IsFrozen = {isfrozen} Where FreezeFlag = 'Current_Status'",
+            ConsistentRead=True
+        )
+        return None  # 204 response has no content
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Freeze must be true or false.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="isfrozen must be 0 or 1.")
 
 @app.put("/change/{classid}/{sectionnumber}/{newprofessorid}", status_code=status.HTTP_204_NO_CONTENT)
 def change_prof(request: Request, classid: int, sectionnumber: int, newprofessorid: int, db: sqlite3.Connection = Depends(get_db)):
