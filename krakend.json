@@ -381,12 +381,12 @@
                 }
             },
             {
-                "endpoint": "/registrar/change/{classid}/{newprofessorid}",
+                "endpoint": "/registrar/change/{classid}/{sectionnumber}/{newprofessorid}",
                 "method": "PUT",
                 "output_encoding": "no-op",
                 "backend": [
                 {
-                    "url_pattern": "/change/{classid}/{newprofessorid}",
+                    "url_pattern": "/change/{classid}/{sectionnumber}/{newprofessorid}",
                     "method": "PUT",
                     "host": [
                         "http://localhost:5300",

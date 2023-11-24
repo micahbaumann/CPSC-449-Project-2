@@ -1,0 +1,93 @@
+[
+    {
+      "ClassID": 1,
+      "CourseCode": "ABC 101",
+      "SectionNumber": 1,
+      "Name": "Introduction to ABC",
+      "MaximumEnrollment": 2,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 2,
+      "CourseCode": "XYZ 200",
+      "SectionNumber": 2,
+      "Name": "Advanced XYZ",
+      "MaximumEnrollment": 30,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 3,
+      "CourseCode": "DEF 303",
+      "SectionNumber": 1,
+      "Name": "DEF Analysis",
+      "MaximumEnrollment": 28,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 4,
+      "CourseCode": "GHI 105",
+      "SectionNumber": 3,
+      "Name": "GHI Basics",
+      "MaximumEnrollment": 22,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 5,
+      "CourseCode": "LMN 401",
+      "SectionNumber": 1,
+      "Name": "LMN Capstone",
+      "MaximumEnrollment": 30,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 6,
+      "CourseCode": "PQR 202",
+      "SectionNumber": 2,
+      "Name": "PQR Intermediate",
+      "MaximumEnrollment": 26,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 7,
+      "CourseCode": "STU 150",
+      "SectionNumber": 1,
+      "Name": "STU Fundamentals",
+      "MaximumEnrollment": 30,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 8,
+      "CourseCode": "VWX 303",
+      "SectionNumber": 1,
+      "Name": "VWX Advanced Topics",
+      "MaximumEnrollment": 29,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 9,
+      "CourseCode": "JKL 102",
+      "SectionNumber": 2,
+      "Name": "JKL Intermediate",
+      "MaximumEnrollment": 27,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    },
+    {
+      "ClassID": 10,
+      "CourseCode": "MNO 401",
+      "SectionNumber": 1,
+      "Name": "MNO Research Seminar",
+      "MaximumEnrollment": 30,
+      "WaitlistCount": 0,
+      "WaitlistMaximum": 15
+    }
+  ]
+  
